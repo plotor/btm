@@ -18,22 +18,28 @@
  * 51 Franklin Street, Fifth Floor
  * Boston, MA 02110-1301 USA
  */
+
 package bitronix.tm.twopc;
 
 import bitronix.tm.BitronixTransaction;
 import bitronix.tm.TransactionManagerServices;
-import bitronix.tm.utils.Decoder;
-import bitronix.tm.internal.*;
+import bitronix.tm.internal.BitronixRollbackException;
+import bitronix.tm.internal.BitronixSystemException;
+import bitronix.tm.internal.XAResourceHolderState;
+import bitronix.tm.internal.XAResourceManager;
 import bitronix.tm.twopc.executor.Executor;
 import bitronix.tm.twopc.executor.Job;
+import bitronix.tm.utils.Decoder;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import javax.transaction.Status;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
 import javax.transaction.RollbackException;
+import javax.transaction.Status;
 import javax.transaction.xa.XAException;
 import javax.transaction.xa.XAResource;
-import java.util.*;
 
 /**
  * Phase 1 Prepare logic engine.
@@ -53,10 +59,11 @@ public final class Preparer extends AbstractPhaseEngine {
 
     /**
      * Execute phase 1 prepare.
+     *
      * @param transaction the transaction to prepare.
      * @return a list that will be filled with all resources that received the prepare command
-     *  and replied with {@link javax.transaction.xa.XAResource#XA_OK}.
-     * @throws RollbackException when an error occured that can be fixed with a rollback.
+     * and replied with {@link javax.transaction.xa.XAResource#XA_OK}.
+     * @throws RollbackException                            when an error occured that can be fixed with a rollback.
      * @throws bitronix.tm.internal.BitronixSystemException when an internal error occured.
      */
     public List<XAResourceHolderState> prepare(BitronixTransaction transaction) throws RollbackException, BitronixSystemException {
@@ -65,10 +72,11 @@ public final class Preparer extends AbstractPhaseEngine {
         preparedResources.clear();
 
         if (resourceManager.size() == 0) {
-            if (TransactionManagerServices.getConfiguration().isWarnAboutZeroResourceTransaction())
+            if (TransactionManagerServices.getConfiguration().isWarnAboutZeroResourceTransaction()) {
                 log.warn("executing transaction with 0 enlisted resource");
-            else
-                if (log.isDebugEnabled()) log.debug("0 resource enlisted, no prepare needed");
+            } else if (log.isDebugEnabled()) {
+                log.debug("0 resource enlisted, no prepare needed");
+            }
 
             transaction.setStatus(Status.STATUS_PREPARED);
             return preparedResources;
@@ -79,12 +87,15 @@ public final class Preparer extends AbstractPhaseEngine {
             XAResourceHolderState resourceHolder = resourceManager.getAllResources().get(0);
 
             preparedResources.add(resourceHolder);
-            if (log.isDebugEnabled()) log.debug("1 resource enlisted, no prepare needed (1PC)");
+            if (log.isDebugEnabled()) {
+                log.debug("1 resource enlisted, no prepare needed (1PC)");
+            }
             transaction.setStatus(Status.STATUS_PREPARED);
             return preparedResources;
         }
 
         try {
+            // 执行 prepare
             executePhase(resourceManager, false);
         } catch (PhaseException ex) {
             logFailedResources(ex);
@@ -92,7 +103,9 @@ public final class Preparer extends AbstractPhaseEngine {
         }
 
         transaction.setStatus(Status.STATUS_PREPARED);
-        if (log.isDebugEnabled()) log.debug("successfully prepared " + preparedResources.size() + " resource(s)");
+        if (log.isDebugEnabled()) {
+            log.debug("successfully prepared " + preparedResources.size() + " resource(s)");
+        }
         return Collections.unmodifiableList(preparedResources);
     }
 
@@ -113,50 +126,60 @@ public final class Preparer extends AbstractPhaseEngine {
                  * a stored procedure that contains a rollback statement. In that case it throws XAException(XAER_NOTA)
                  * when asked to prepare.
                  */
-                if (xaEx.errorCode == XAException.XAER_NOTA)
+                if (xaEx.errorCode == XAException.XAER_NOTA) {
                     heuristicResources.add(resourceHolder);
-                else
+                } else {
                     errorResources.add(resourceHolder);
-            }
-            else
+                }
+            } else {
                 errorResources.add(resourceHolder);
+            }
         }
 
-        if (heuristicResources.size() > 0)
+        if (heuristicResources.size() > 0) {
             throw new BitronixRollbackException(message + ":" +
                     " resource(s) " + Decoder.collectResourcesNames(heuristicResources) +
                     " unilaterally finished transaction branch before being asked to prepare", phaseException);
-        else
+        } else {
             throw new BitronixRollbackException(message + ":" +
                     " resource(s) " + Decoder.collectResourcesNames(errorResources) +
                     " threw unexpected exception", phaseException);
+        }
     }
 
+    @Override
     protected Job createJob(XAResourceHolderState xaResourceHolderState) {
         return new PrepareJob(xaResourceHolderState);
     }
 
+    @Override
     protected boolean isParticipating(XAResourceHolderState xaResourceHolderState) {
         return true;
     }
 
-
     private final class PrepareJob extends Job {
+
         public PrepareJob(XAResourceHolderState resourceHolder) {
             super(resourceHolder);
         }
 
+        @Override
         public void execute() {
             try {
+                // 获取 XAResource
                 XAResourceHolderState resourceHolder = getResource();
-                if (log.isDebugEnabled()) log.debug("preparing resource " + resourceHolder);
+                if (log.isDebugEnabled()) {
+                    log.debug("preparing resource " + resourceHolder);
+                }
 
                 int vote = resourceHolder.getXAResource().prepare(resourceHolder.getXid());
-                if (vote != XAResource.XA_RDONLY) {
+                if (vote != XAResource.XA_RDONLY) { // XA_RDONLY 表示只读事务分支，已被提交
                     preparedResources.add(resourceHolder);
                 }
 
-                if (log.isDebugEnabled()) log.debug("prepared resource " + resourceHolder + " voted " + Decoder.decodePrepareVote(vote));
+                if (log.isDebugEnabled()) {
+                    log.debug("prepared resource " + resourceHolder + " voted " + Decoder.decodePrepareVote(vote));
+                }
             } catch (RuntimeException ex) {
                 runtimeException = ex;
             } catch (XAException ex) {
@@ -164,6 +187,7 @@ public final class Preparer extends AbstractPhaseEngine {
             }
         }
 
+        @Override
         public String toString() {
             return "a PrepareJob with " + getResource();
         }

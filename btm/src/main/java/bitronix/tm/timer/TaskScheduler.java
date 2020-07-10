@@ -18,6 +18,7 @@
  * 51 Franklin Street, Fifth Floor
  * Boston, MA 02110-1301 USA
  */
+
 package bitronix.tm.timer;
 
 import bitronix.tm.BitronixTransaction;
@@ -89,6 +90,7 @@ public class TaskScheduler extends Thread implements Service {
 
     /**
      * Get the amount of tasks currently queued.
+     *
      * @return the amount of tasks currently queued.
      */
     public int countTasksQueued() {
@@ -117,15 +119,18 @@ public class TaskScheduler extends Thread implements Service {
     /**
      * Schedule a task that will mark the transaction as timed out at the specified date. If this method is called
      * with the same transaction multiple times, the previous timeout date is dropped and replaced by the new one.
+     *
      * @param transaction the transaction to mark as timeout.
      * @param executionTime the date at which the transaction must be marked.
      */
     public void scheduleTransactionTimeout(BitronixTransaction transaction, Date executionTime) {
         if (log.isDebugEnabled()) log.debug("scheduling transaction timeout task on " + transaction + " for " + executionTime);
-        if (transaction == null)
+        if (transaction == null) {
             throw new IllegalArgumentException("expected a non-null transaction");
-        if (executionTime == null)
+        }
+        if (executionTime == null) {
             throw new IllegalArgumentException("expected a non-null execution date");
+        }
 
         TransactionTimeoutTask task = new TransactionTimeoutTask(transaction, executionTime, this);
         addTask(task);
@@ -134,28 +139,38 @@ public class TaskScheduler extends Thread implements Service {
 
     /**
      * Cancel the task that will mark the transaction as timed out at the specified date.
+     *
      * @param transaction the transaction to mark as timeout.
      */
     public void cancelTransactionTimeout(BitronixTransaction transaction) {
-        if (log.isDebugEnabled()) log.debug("cancelling transaction timeout task on " + transaction);
-        if (transaction == null)
+        if (log.isDebugEnabled()) {
+            log.debug("cancelling transaction timeout task on " + transaction);
+        }
+        if (transaction == null) {
             throw new IllegalArgumentException("expected a non-null transaction");
+        }
 
-        if (!removeTaskByObject(transaction))
-            if (log.isDebugEnabled()) log.debug("no task found based on object " + transaction);
+        if (!removeTaskByObject(transaction)) {
+            if (log.isDebugEnabled()) {
+                log.debug("no task found based on object " + transaction);
+            }
+        }
     }
 
     /**
      * Schedule a task that will run background recovery at the specified date.
+     *
      * @param recoverer the recovery implementation to use.
      * @param executionTime the date at which the transaction must be marked.
      */
     public void scheduleRecovery(Recoverer recoverer, Date executionTime) {
         if (log.isDebugEnabled()) log.debug("scheduling recovery task for " + executionTime);
-        if (recoverer == null)
+        if (recoverer == null) {
             throw new IllegalArgumentException("expected a non-null recoverer");
-        if (executionTime == null)
+        }
+        if (executionTime == null) {
             throw new IllegalArgumentException("expected a non-null execution date");
+        }
 
         RecoveryTask task = new RecoveryTask(recoverer, executionTime, this);
         addTask(task);
@@ -164,25 +179,29 @@ public class TaskScheduler extends Thread implements Service {
 
     /**
      * Cancel the task that will run background recovery at the specified date.
+     *
      * @param recoverer the recovery implementation to use.
      */
     public void cancelRecovery(Recoverer recoverer) {
         if (log.isDebugEnabled()) log.debug("cancelling recovery task");
 
-        if (!removeTaskByObject(recoverer))
+        if (!removeTaskByObject(recoverer)) {
             if (log.isDebugEnabled()) log.debug("no task found based on object " + recoverer);
+        }
     }
 
     /**
      * Schedule a task that will tell a XA pool to close idle connections. The execution time will be provided by the
      * XA pool itself via the {@link bitronix.tm.resource.common.XAPool#getNextShrinkDate()}.
+     *
      * @param xaPool the XA pool to notify.
      */
     public void schedulePoolShrinking(XAPool xaPool) {
         Date executionTime = xaPool.getNextShrinkDate();
         if (log.isDebugEnabled()) log.debug("scheduling pool shrinking task on " + xaPool + " for " + executionTime);
-        if (executionTime == null)
+        if (executionTime == null) {
             throw new IllegalArgumentException("expected a non-null execution date");
+        }
 
         PoolShrinkingTask task = new PoolShrinkingTask(xaPool, executionTime, this);
         addTask(task);
@@ -191,15 +210,18 @@ public class TaskScheduler extends Thread implements Service {
 
     /**
      * Cancel the task that will tell a XA pool to close idle connections.
+     *
      * @param xaPool the XA pool to notify.
      */
     public void cancelPoolShrinking(XAPool xaPool) {
         if (log.isDebugEnabled()) log.debug("cancelling pool shrinking task on " + xaPool);
-        if (xaPool == null)
+        if (xaPool == null) {
             throw new IllegalArgumentException("expected a non-null XA pool");
+        }
 
-        if (!removeTaskByObject(xaPool))
+        if (!removeTaskByObject(xaPool)) {
             if (log.isDebugEnabled()) log.debug("no task found based on object " + xaPool);
+        }
     }
 
     void addTask(Task task) {
@@ -238,6 +260,7 @@ public class TaskScheduler extends Thread implements Service {
         return active.get();
     }
 
+    @Override
     public void run() {
         while (isActive()) {
             try {
@@ -252,8 +275,9 @@ public class TaskScheduler extends Thread implements Service {
     private void executeElapsedTasks() {
         lock();
         try {
-            if (this.tasks.isEmpty())
+            if (this.tasks.isEmpty()) {
                 return;
+            }
 
             Set<Task> toRemove = new HashSet<Task>();
             for (Task task : tasks) {

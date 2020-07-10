@@ -18,19 +18,20 @@
  * 51 Franklin Street, Fifth Floor
  * Boston, MA 02110-1301 USA
  */
+
 package bitronix.tm.internal;
 
+import bitronix.tm.BitronixXid;
 import bitronix.tm.resource.common.ResourceBean;
 import bitronix.tm.resource.common.XAResourceHolder;
-import bitronix.tm.BitronixXid;
 import bitronix.tm.utils.Decoder;
 import bitronix.tm.utils.MonotonicClock;
-import org.slf4j.LoggerFactory;
 import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
+import java.util.Date;
 import javax.transaction.xa.XAException;
 import javax.transaction.xa.XAResource;
-import java.util.Date;
 
 /**
  * {@link XAResourceHolder} state container.
@@ -43,8 +44,8 @@ import java.util.Date;
  * <p>There is exactly one {@link XAResourceHolderState} object per {@link XAResourceHolder} per
  * {@link javax.transaction.Transaction}.</p>
  *
- * @see bitronix.tm.resource.common.ResourceBean
  * @author lorban
+ * @see bitronix.tm.resource.common.ResourceBean
  */
 public class XAResourceHolderState {
 
@@ -87,9 +88,12 @@ public class XAResourceHolderState {
     }
 
     public void setXid(BitronixXid xid) throws BitronixSystemException {
-        if (log.isDebugEnabled()) log.debug("assigning <" + xid + "> to <" + this + ">");
-        if (this.xid != null && !xid.equals(this.xid))
+        if (log.isDebugEnabled()) {
+            log.debug("assigning <" + xid + "> to <" + this + ">");
+        }
+        if (this.xid != null && !xid.equals(this.xid)) {
             throw new BitronixSystemException("a XID has already been assigned to " + this);
+        }
         this.xid = xid;
     }
 
@@ -151,19 +155,21 @@ public class XAResourceHolderState {
             return;
         }
 
-        if (this.ended)
+        if (this.ended) {
             throw new BitronixXAException("resource already ended: " + this, XAException.XAER_PROTO);
+        }
 
         if (flags == XAResource.TMSUSPEND) {
-            if (!this.started)
+            if (!this.started) {
                 throw new BitronixXAException("resource hasn't been started, cannot suspend it: " + this, XAException.XAER_PROTO);
-            if (this.suspended)
+            }
+            if (this.suspended) {
                 throw new BitronixXAException("resource already suspended: " + this, XAException.XAER_PROTO);
+            }
 
             if (log.isDebugEnabled()) log.debug("suspending " + this + " with " + Decoder.decodeXAResourceFlag(flags));
             suspended = true;
-        }
-        else {
+        } else {
             if (log.isDebugEnabled()) log.debug("ending " + this + " with " + Decoder.decodeXAResourceFlag(flags));
             ended = true;
         }
@@ -171,7 +177,7 @@ public class XAResourceHolderState {
         try {
             getXAResource().end(xid, flags);
             if (log.isDebugEnabled()) log.debug("ended " + this + " with " + Decoder.decodeXAResourceFlag(flags));
-        } catch(XAException ex) {
+        } catch (XAException ex) {
             // could mean failed or unilaterally rolled back
             failed = true;
             throw ex;
@@ -193,17 +199,19 @@ public class XAResourceHolderState {
         }
 
         if (flags == XAResource.TMRESUME) {
-            if (!this.suspended)
+            if (!this.suspended) {
                 throw new BitronixXAException("resource hasn't been suspended, cannot resume it: " + this, XAException.XAER_PROTO);
-            if (!this.started)
+            }
+            if (!this.started) {
                 throw new BitronixXAException("resource hasn't been started, cannot resume it: " + this, XAException.XAER_PROTO);
+            }
 
             if (log.isDebugEnabled()) log.debug("resuming " + this + " with " + Decoder.decodeXAResourceFlag(flags));
             suspended = false;
-        }
-        else {
-            if (this.started)
+        } else {
+            if (this.started) {
                 throw new BitronixXAException("resource already started: " + this, XAException.XAER_PROTO);
+            }
 
             if (log.isDebugEnabled()) log.debug("starting " + this + " with " + Decoder.decodeXAResourceFlag(flags));
             started = true;
@@ -224,33 +232,39 @@ public class XAResourceHolderState {
         if (log.isDebugEnabled()) log.debug("started " + this + " with " + Decoder.decodeXAResourceFlag(flags));
     }
 
+    @Override
     public int hashCode() {
         return 17 * (bean.hashCode() + xid.hashCode());
     }
 
+    @Override
     public boolean equals(Object obj) {
-        if (!(obj instanceof XAResourceHolderState))
+        if (!(obj instanceof XAResourceHolderState)) {
             return false;
+        }
 
         XAResourceHolderState other = (XAResourceHolderState) obj;
         return equals(other.bean, bean) && equals(other.xid, xid);
     }
 
     private boolean equals(Object obj1, Object obj2) {
-        if (obj1 == obj2)
+        if (obj1 == obj2) {
             return true;
-        if (obj1 == null || obj2 == null)
+        }
+        if (obj1 == null || obj2 == null) {
             return false;
+        }
 
         return obj1.equals(obj2);
     }
 
+    @Override
     public String toString() {
         return "an XAResourceHolderState with uniqueName=" + bean.getUniqueName() +
                 " XAResource=" + getXAResource() +
-                (started ? " (started)":"") +
-                (ended ? " (ended)":"") +
-                (suspended ? " (suspended)":"") +
+                (started ? " (started)" : "") +
+                (ended ? " (ended)" : "") +
+                (suspended ? " (suspended)" : "") +
                 " with XID " + xid;
     }
 

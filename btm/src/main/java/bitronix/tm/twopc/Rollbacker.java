@@ -18,26 +18,31 @@
  * 51 Franklin Street, Fifth Floor
  * Boston, MA 02110-1301 USA
  */
+
 package bitronix.tm.twopc;
 
-import bitronix.tm.TransactionManagerServices;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import bitronix.tm.BitronixTransaction;
-import bitronix.tm.utils.Decoder;
+import bitronix.tm.TransactionManagerServices;
+import bitronix.tm.internal.BitronixHeuristicCommitException;
+import bitronix.tm.internal.BitronixHeuristicMixedException;
+import bitronix.tm.internal.BitronixSystemException;
+import bitronix.tm.internal.XAResourceHolderState;
+import bitronix.tm.internal.XAResourceManager;
 import bitronix.tm.twopc.executor.Executor;
 import bitronix.tm.twopc.executor.Job;
-import bitronix.tm.internal.*;
+import bitronix.tm.utils.Decoder;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
-import javax.transaction.Status;
-import javax.transaction.HeuristicMixedException;
-import javax.transaction.HeuristicCommitException;
-import javax.transaction.xa.XAException;
-import java.util.List;
 import java.util.ArrayList;
-import java.util.HashSet;
 import java.util.Collections;
+import java.util.HashSet;
+import java.util.List;
 import java.util.Set;
+import javax.transaction.HeuristicCommitException;
+import javax.transaction.HeuristicMixedException;
+import javax.transaction.Status;
+import javax.transaction.xa.XAException;
 
 /**
  * Phase 1 & 2 Rollback logic engine.
@@ -62,8 +67,8 @@ public final class Rollbacker extends AbstractPhaseEngine {
      *
      * @param transaction the transaction to rollback.
      * @param interestedResources resources that should be rolled back.
-     * @throws HeuristicCommitException when all resources committed instead.
-     * @throws HeuristicMixedException when some resources committed and some rolled back.
+     * @throws HeuristicCommitException                     when all resources committed instead.
+     * @throws HeuristicMixedException                      when some resources committed and some rolled back.
      * @throws bitronix.tm.internal.BitronixSystemException when an internal error occured.
      */
     public void rollback(BitronixTransaction transaction, List<XAResourceHolderState> interestedResources) throws HeuristicMixedException, HeuristicCommitException, BitronixSystemException {
@@ -124,34 +129,38 @@ public final class Rollbacker extends AbstractPhaseEngine {
                     case XAException.XA_HEURMIX:
                         heuristicResources.add(resourceHolder);
                         break;
-                    
+
                     default:
                         errorResources.add(resourceHolder);
                 }
-            }
-            else
+            } else {
                 errorResources.add(resourceHolder);
+            }
         }
 
-        if (!hazard && heuristicResources.size() == totalResourceCount)
+        if (!hazard && heuristicResources.size() == totalResourceCount) {
             throw new BitronixHeuristicCommitException(message + ":" +
                     " all resource(s) " + Decoder.collectResourcesNames(heuristicResources) +
                     " improperly unilaterally committed", phaseException);
-        else
+        } else {
             throw new BitronixHeuristicMixedException(message + ":" +
                     (errorResources.size() > 0 ? " resource(s) " + Decoder.collectResourcesNames(errorResources) + " threw unexpected exception" : "") +
                     (errorResources.size() > 0 && heuristicResources.size() > 0 ? " and" : "") +
                     (heuristicResources.size() > 0 ? " resource(s) " + Decoder.collectResourcesNames(heuristicResources) + " improperly unilaterally committed" + (hazard ? " (or hazard happened)" : "") : ""), phaseException);
+        }
     }
 
+    @Override
     protected Job createJob(XAResourceHolderState resourceHolder) {
         return new RollbackJob(resourceHolder);
     }
 
+    @Override
     protected boolean isParticipating(XAResourceHolderState xaResourceHolderState) {
         for (XAResourceHolderState resourceHolderState : interestedResources) {
-            if (xaResourceHolderState == resourceHolderState)
+            if (xaResourceHolderState == resourceHolderState) {
                 return true;
+            }
         }
         return false;
     }
@@ -162,6 +171,7 @@ public final class Rollbacker extends AbstractPhaseEngine {
             super(resourceHolder);
         }
 
+        @Override
         public void execute() {
             try {
                 rollbackResource(getResource());
@@ -215,6 +225,7 @@ public final class Rollbacker extends AbstractPhaseEngine {
             }
         }
 
+        @Override
         public String toString() {
             return "a RollbackJob with " + getResource();
         }

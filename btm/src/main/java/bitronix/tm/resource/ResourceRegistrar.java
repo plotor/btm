@@ -18,6 +18,7 @@
  * 51 Franklin Street, Fifth Floor
  * Boston, MA 02110-1301 USA
  */
+
 package bitronix.tm.resource;
 
 import bitronix.tm.TransactionManagerServices;
@@ -28,7 +29,6 @@ import bitronix.tm.resource.common.XAResourceProducer;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import javax.transaction.xa.XAResource;
 import java.util.Collections;
 import java.util.Map;
 import java.util.Set;
@@ -36,6 +36,7 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
+import javax.transaction.xa.XAResource;
 
 /**
  * Collection of initialized {@link XAResourceProducer}s. All resources must be registered in the {@link ResourceRegistrar}
@@ -52,6 +53,7 @@ public class ResourceRegistrar {
 
     /**
      * Get a registered {@link XAResourceProducer}.
+     *
      * @param uniqueName the name of the recoverable resource producer.
      * @return the {@link XAResourceProducer} or null if there was none registered under that name.
      */
@@ -61,6 +63,7 @@ public class ResourceRegistrar {
 
     /**
      * Get all {@link XAResourceProducer}s unique names.
+     *
      * @return a Set containing all {@link bitronix.tm.resource.common.XAResourceProducer}s unique names.
      */
     public static Set<String> getResourcesUniqueNames() {
@@ -70,6 +73,7 @@ public class ResourceRegistrar {
     /**
      * Register a {@link XAResourceProducer}. If registration happens after the transaction manager started, incremental
      * recovery is run on that resource.
+     *
      * @param producer the {@link XAResourceProducer}.
      * @throws bitronix.tm.recovery.RecoveryException when an error happens during recovery.
      */
@@ -77,13 +81,18 @@ public class ResourceRegistrar {
         registrationLock.lock();
         try {
             String uniqueName = producer.getUniqueName();
-            if (producer.getUniqueName() == null)
+            if (producer.getUniqueName() == null) {
                 throw new IllegalArgumentException("invalid resource with null uniqueName");
-            if (resources.containsKey(uniqueName))
-                throw new IllegalArgumentException("resource with uniqueName '" + producer.getUniqueName() + "' has already been registered");
+            }
+            if (resources.containsKey(uniqueName)) {
+                throw new IllegalArgumentException(
+                        "resource with uniqueName '" + producer.getUniqueName() + "' has already been registered");
+            }
 
             if (TransactionManagerServices.isTransactionManagerRunning()) {
-                if (log.isDebugEnabled()) log.debug("transaction manager is running, recovering resource " + uniqueName);
+                if (log.isDebugEnabled()) {
+                    log.debug("transaction manager is running, recovering resource " + uniqueName);
+                }
                 IncrementalRecoverer.recover(producer);
             }
             resources.put(uniqueName, producer);
@@ -94,14 +103,16 @@ public class ResourceRegistrar {
 
     /**
      * Unregister a previously registered {@link XAResourceProducer}.
+     *
      * @param producer the {@link XAResourceProducer}.
      */
     public static void unregister(XAResourceProducer producer) {
         registrationLock.lock();
         try {
             String uniqueName = producer.getUniqueName();
-            if (producer.getUniqueName() == null)
+            if (producer.getUniqueName() == null) {
                 throw new IllegalArgumentException("invalid resource with null uniqueName");
+            }
             if (!resources.containsKey(uniqueName)) {
                 if (log.isDebugEnabled()) log.debug("resource with uniqueName '" + producer.getUniqueName() + "' has not been registered");
                 return;
@@ -114,6 +125,7 @@ public class ResourceRegistrar {
 
     /**
      * Find in the registered {@link XAResourceProducer}s the {@link XAResourceHolder} from which the specified {@link XAResource} comes from.
+     *
      * @param xaResource the {@link XAResource} to look for
      * @return the associated {@link XAResourceHolder} or null if it cannot be found.
      */

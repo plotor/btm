@@ -18,9 +18,14 @@
  * 51 Franklin Street, Fifth Floor
  * Boston, MA 02110-1301 USA
  */
+
 package bitronix.tm;
 
-import bitronix.tm.utils.*;
+import bitronix.tm.utils.ClassLoaderUtils;
+import bitronix.tm.utils.InitializationException;
+import bitronix.tm.utils.PropertyException;
+import bitronix.tm.utils.PropertyUtils;
+import bitronix.tm.utils.Service;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -73,7 +78,6 @@ public class Configuration implements Service {
     private volatile boolean allowMultipleLrc;
     private volatile String resourceConfigurationFilename;
 
-
     protected Configuration() {
         try {
             InputStream in = null;
@@ -88,10 +92,9 @@ public class Configuration implements Service {
                     in = ClassLoaderUtils.getResourceAsStream("bitronix-default-config.properties");
                 }
                 properties = new Properties();
-                if (in != null)
+                if (in != null) {
                     properties.load(in);
-                else
-                     if (log.isDebugEnabled()) log.debug("no configuration file found, using default settings");
+                } else if (log.isDebugEnabled()) log.debug("no configuration file found, using default settings");
             } finally {
                 if (in != null) in.close();
             }
@@ -123,11 +126,11 @@ public class Configuration implements Service {
         }
     }
 
-
     /**
      * ASCII ID that must uniquely identify this TM instance. It must not exceed 51 characters or it will be truncated.
      * <p>Property name:<br/><b>bitronix.tm.serverId -</b> <i>(defaults to server's IP address but that's unsafe for
      * production use)</i></p>
+     *
      * @return the unique ID of this TM instance.
      */
     public String getServerId() {
@@ -137,9 +140,10 @@ public class Configuration implements Service {
     /**
      * Set the ASCII ID that must uniquely identify this TM instance. It must not exceed 51 characters or it will be
      * truncated.
-     * @see #getServerId()
+     *
      * @param serverId the unique ID of this TM instance.
      * @return this.
+     * @see #getServerId()
      */
     public Configuration setServerId(String serverId) {
         checkNotStarted();
@@ -150,6 +154,7 @@ public class Configuration implements Service {
     /**
      * Get the journal fragment file 1 name.
      * <p>Property name:<br/><b>bitronix.tm.journal.disk.logPart1Filename -</b> <i>(defaults to btm1.tlog)</i></p>
+     *
      * @return the journal fragment file 1 name.
      */
     public String getLogPart1Filename() {
@@ -158,9 +163,10 @@ public class Configuration implements Service {
 
     /**
      * Set the journal fragment file 1 name.
-     * @see #getLogPart1Filename()
+     *
      * @param logPart1Filename the journal fragment file 1 name.
      * @return this.
+     * @see #getLogPart1Filename()
      */
     public Configuration setLogPart1Filename(String logPart1Filename) {
         checkNotStarted();
@@ -171,6 +177,7 @@ public class Configuration implements Service {
     /**
      * Get the journal fragment file 2 name.
      * <p>Property name:<br/><b>bitronix.tm.journal.disk.logPart2Filename -</b> <i>(defaults to btm2.tlog)</i></p>
+     *
      * @return the journal fragment file 2 name.
      */
     public String getLogPart2Filename() {
@@ -179,9 +186,10 @@ public class Configuration implements Service {
 
     /**
      * Set the journal fragment file 2 name.
-     * @see #getLogPart2Filename()
+     *
      * @param logPart2Filename the journal fragment file 2 name.
      * @return this.
+     * @see #getLogPart2Filename()
      */
     public Configuration setLogPart2Filename(String logPart2Filename) {
         checkNotStarted();
@@ -193,6 +201,7 @@ public class Configuration implements Service {
      * Are logs forced to disk?  Do not set to false in production since without disk force, integrity is not
      * guaranteed.
      * <p>Property name:<br/><b>bitronix.tm.journal.disk.forcedWriteEnabled -</b> <i>(defaults to true)</i></p>
+     *
      * @return true if logs are forced to disk, false otherwise.
      */
     public boolean isForcedWriteEnabled() {
@@ -202,9 +211,10 @@ public class Configuration implements Service {
     /**
      * Set if logs are forced to disk.  Do not set to false in production since without disk force, integrity is not
      * guaranteed.
-     * @see #isForcedWriteEnabled()
+     *
      * @param forcedWriteEnabled true if logs should be forced to disk, false otherwise.
      * @return this.
+     * @see #isForcedWriteEnabled()
      */
     public Configuration setForcedWriteEnabled(boolean forcedWriteEnabled) {
         checkNotStarted();
@@ -215,6 +225,7 @@ public class Configuration implements Service {
     /**
      * Are disk forces batched? Disabling batching can seriously lower the transaction manager's throughput.
      * <p>Property name:<br/><b>bitronix.tm.journal.disk.forceBatchingEnabled -</b> <i>(defaults to true)</i></p>
+     *
      * @return true if disk forces are batched, false otherwise.
      */
     public boolean isForceBatchingEnabled() {
@@ -223,9 +234,10 @@ public class Configuration implements Service {
 
     /**
      * Set if disk forces are batched. Disabling batching can seriously lower the transaction manager's throughput.
-     * @see #isForceBatchingEnabled()
+     *
      * @param forceBatchingEnabled true if disk forces are batched, false otherwise.
      * @return this.
+     * @see #isForceBatchingEnabled()
      */
     public Configuration setForceBatchingEnabled(boolean forceBatchingEnabled) {
         checkNotStarted();
@@ -237,6 +249,7 @@ public class Configuration implements Service {
      * Maximum size in megabytes of the journal fragments. Larger logs allow transactions to stay longer in-doubt but
      * the TM pauses longer when a fragment is full.
      * <p>Property name:<br/><b>bitronix.tm.journal.disk.maxLogSize -</b> <i>(defaults to 2)</i></p>
+     *
      * @return the maximum size in megabytes of the journal fragments.
      */
     public int getMaxLogSizeInMb() {
@@ -246,9 +259,10 @@ public class Configuration implements Service {
     /**
      * Set the Maximum size in megabytes of the journal fragments. Larger logs allow transactions to stay longer
      * in-doubt but the TM pauses longer when a fragment is full.
-     * @see #getMaxLogSizeInMb()
+     *
      * @param maxLogSizeInMb the maximum size in megabytes of the journal fragments.
      * @return this.
+     * @see #getMaxLogSizeInMb()
      */
     public Configuration setMaxLogSizeInMb(int maxLogSizeInMb) {
         checkNotStarted();
@@ -260,6 +274,7 @@ public class Configuration implements Service {
      * Should only mandatory logs be written? Enabling this parameter lowers space usage of the fragments but makes
      * debugging more complex.
      * <p>Property name:<br/><b>bitronix.tm.journal.disk.filterLogStatus -</b> <i>(defaults to false)</i></p>
+     *
      * @return true if only mandatory logs should be written.
      */
     public boolean isFilterLogStatus() {
@@ -269,9 +284,10 @@ public class Configuration implements Service {
     /**
      * Set if only mandatory logs should be written. Enabling this parameter lowers space usage of the fragments but
      * makes debugging more complex.
-     * @see #isFilterLogStatus()
+     *
      * @param filterLogStatus true if only mandatory logs should be written.
      * @return this.
+     * @see #isFilterLogStatus()
      */
     public Configuration setFilterLogStatus(boolean filterLogStatus) {
         checkNotStarted();
@@ -282,6 +298,7 @@ public class Configuration implements Service {
     /**
      * Should corrupted logs be skipped?
      * <p>Property name:<br/><b>bitronix.tm.journal.disk.skipCorruptedLogs -</b> <i>(defaults to false)</i></p>
+     *
      * @return true if corrupted logs should be skipped.
      */
     public boolean isSkipCorruptedLogs() {
@@ -290,9 +307,10 @@ public class Configuration implements Service {
 
     /**
      * Set if corrupted logs should be skipped.
-     * @see #isSkipCorruptedLogs()
+     *
      * @param skipCorruptedLogs true if corrupted logs should be skipped.
      * @return this.
+     * @see #isSkipCorruptedLogs()
      */
     public Configuration setSkipCorruptedLogs(boolean skipCorruptedLogs) {
         checkNotStarted();
@@ -305,6 +323,7 @@ public class Configuration implements Service {
      * there are many resources enlisted in transactions but is more CPU intensive due to the dynamic thread spawning
      * requirements. It also makes debugging more complex.
      * <p>Property name:<br/><b>bitronix.tm.2pc.async -</b> <i>(defaults to false)</i></p>
+     *
      * @return true if two phase commit should be executed asynchronously.
      */
     public boolean isAsynchronous2Pc() {
@@ -315,9 +334,10 @@ public class Configuration implements Service {
      * Set if two phase commit should be executed asynchronously. Asynchronous two phase commit can improve performance
      * when there are many resources enlisted in transactions but is more CPU intensive due to the dynamic thread
      * spawning requirements. It also makes debugging more complex.
-     * @see #isAsynchronous2Pc()
+     *
      * @param asynchronous2Pc true if two phase commit should be executed asynchronously.
      * @return this.
+     * @see #isAsynchronous2Pc()
      */
     public Configuration setAsynchronous2Pc(boolean asynchronous2Pc) {
         checkNotStarted();
@@ -329,6 +349,7 @@ public class Configuration implements Service {
      * Should transactions executed without a single enlisted resource result in a warning or not? Most of the time
      * transactions executed with no enlisted resource reflect a bug or a mis-configuration somewhere.
      * <p>Property name:<br/><b>bitronix.tm.2pc.warnAboutZeroResourceTransactions -</b> <i>(defaults to true)</i></p>
+     *
      * @return true if transactions executed without a single enlisted resource should result in a warning.
      */
     public boolean isWarnAboutZeroResourceTransaction() {
@@ -338,10 +359,11 @@ public class Configuration implements Service {
     /**
      * Set if transactions executed without a single enlisted resource should result in a warning or not. Most of the
      * time transactions executed with no enlisted resource reflect a bug or a mis-configuration somewhere.
-     * @see #isWarnAboutZeroResourceTransaction()
+     *
      * @param warnAboutZeroResourceTransaction true if transactions executed without a single enlisted resource should
-     *        result in a warning.
+     * result in a warning.
      * @return this.
+     * @see #isWarnAboutZeroResourceTransaction()
      */
     public Configuration setWarnAboutZeroResourceTransaction(boolean warnAboutZeroResourceTransaction) {
         checkNotStarted();
@@ -353,8 +375,9 @@ public class Configuration implements Service {
      * Should creation and commit call stacks of transactions executed without a single enlisted tracked and logged
      * or not?
      * <p>Property name:<br/><b>bitronix.tm.2pc.debugZeroResourceTransactions -</b> <i>(defaults to false)</i></p>
+     *
      * @return true if creation and commit call stacks of transactions executed without a single enlisted resource
-     *         should be tracked and logged.
+     * should be tracked and logged.
      */
     public boolean isDebugZeroResourceTransaction() {
         return debugZeroResourceTransaction;
@@ -363,11 +386,12 @@ public class Configuration implements Service {
     /**
      * Set if creation and commit call stacks of transactions executed without a single enlisted resource should be
      * tracked and logged.
+     *
+     * @param debugZeroResourceTransaction true if the creation and commit call stacks of transaction executed without
+     * a single enlisted resource should be tracked and logged.
+     * @return this.
      * @see #isDebugZeroResourceTransaction()
      * @see #isWarnAboutZeroResourceTransaction()
-     * @param debugZeroResourceTransaction true if the creation and commit call stacks of transaction executed without
-     *        a single enlisted resource should be tracked and logged.
-     * @return this.
      */
     public Configuration setDebugZeroResourceTransaction(boolean debugZeroResourceTransaction) {
         checkNotStarted();
@@ -378,6 +402,7 @@ public class Configuration implements Service {
     /**
      * Default transaction timeout in seconds.
      * <p>Property name:<br/><b>bitronix.tm.timer.defaultTransactionTimeout -</b> <i>(defaults to 60)</i></p>
+     *
      * @return the default transaction timeout in seconds.
      */
     public int getDefaultTransactionTimeout() {
@@ -386,9 +411,10 @@ public class Configuration implements Service {
 
     /**
      * Set the default transaction timeout in seconds.
-     * @see #getDefaultTransactionTimeout()
+     *
      * @param defaultTransactionTimeout the default transaction timeout in seconds.
      * @return this.
+     * @see #getDefaultTransactionTimeout()
      */
     public Configuration setDefaultTransactionTimeout(int defaultTransactionTimeout) {
         checkNotStarted();
@@ -399,6 +425,7 @@ public class Configuration implements Service {
     /**
      * Maximum amount of seconds the TM will wait for transactions to get done before aborting them at shutdown time.
      * <p>Property name:<br/><b>bitronix.tm.timer.gracefulShutdownInterval -</b> <i>(defaults to 60)</i></p>
+     *
      * @return the maximum amount of time in seconds.
      */
     public int getGracefulShutdownInterval() {
@@ -408,9 +435,10 @@ public class Configuration implements Service {
     /**
      * Set the maximum amount of seconds the TM will wait for transactions to get done before aborting them at shutdown
      * time.
-     * @see #getGracefulShutdownInterval()
+     *
      * @param gracefulShutdownInterval the maximum amount of time in seconds.
      * @return this.
+     * @see #getGracefulShutdownInterval()
      */
     public Configuration setGracefulShutdownInterval(int gracefulShutdownInterval) {
         checkNotStarted();
@@ -421,6 +449,7 @@ public class Configuration implements Service {
     /**
      * Interval in minutes at which to run the recovery process in the background. Disabled when set to 0.
      * <p>Property name:<br/><b>bitronix.tm.timer.backgroundRecoveryInterval -</b> <i>(defaults to 0)</i></p>
+     *
      * @return the interval in minutes.
      * @deprecated superceded by #getBackgroundRecoveryIntervalSeconds().
      */
@@ -430,10 +459,11 @@ public class Configuration implements Service {
 
     /**
      * Set the interval in minutes at which to run the recovery process in the background. Disabled when set to 0.
-     * @see #getBackgroundRecoveryInterval()
+     *
      * @param backgroundRecoveryInterval the interval in minutes.
-     * @deprecated superceded by #setBackgroundRecoveryIntervalSeconds(int).
      * @return this.
+     * @see #getBackgroundRecoveryInterval()
+     * @deprecated superceded by #setBackgroundRecoveryIntervalSeconds(int).
      */
     public Configuration setBackgroundRecoveryInterval(int backgroundRecoveryInterval) {
         log.warn("setBackgroundRecoveryInterval() is deprecated, consider using setBackgroundRecoveryIntervalSeconds() instead.");
@@ -444,6 +474,7 @@ public class Configuration implements Service {
     /**
      * Interval in seconds at which to run the recovery process in the background. Disabled when set to 0.
      * <p>Property name:<br/><b>bitronix.tm.timer.backgroundRecoveryIntervalSeconds -</b> <i>(defaults to 60)</i></p>
+     *
      * @return the interval in seconds.
      */
     public int getBackgroundRecoveryIntervalSeconds() {
@@ -452,9 +483,10 @@ public class Configuration implements Service {
 
     /**
      * Set the interval in seconds at which to run the recovery process in the background. Disabled when set to 0.
-     * @see #getBackgroundRecoveryIntervalSeconds()
+     *
      * @param backgroundRecoveryIntervalSeconds the interval in minutes.
      * @return this.
+     * @see #getBackgroundRecoveryIntervalSeconds()
      */
     public Configuration setBackgroundRecoveryIntervalSeconds(int backgroundRecoveryIntervalSeconds) {
         checkNotStarted();
@@ -465,6 +497,7 @@ public class Configuration implements Service {
     /**
      * Should JMX Mbeans not be registered even if a JMX MBean server is detected?
      * <p>Property name:<br/><b>bitronix.tm.disableJmx -</b> <i>(defaults to false)</i></p>
+     *
      * @return true if JMX MBeans should never be registered.
      */
     public boolean isDisableJmx() {
@@ -473,9 +506,10 @@ public class Configuration implements Service {
 
     /**
      * Set to true if JMX Mbeans should not be registered even if a JMX MBean server is detected.
-     * @see #isDisableJmx()
+     *
      * @param disableJmx true if JMX MBeans should never be registered.
      * @return this.
+     * @see #isDisableJmx()
      */
     public Configuration setDisableJmx(boolean disableJmx) {
         checkNotStarted();
@@ -486,8 +520,9 @@ public class Configuration implements Service {
     /**
      * Get the name the {@link javax.transaction.UserTransaction} should be bound under in the
      * {@link bitronix.tm.jndi.BitronixContext}.
+     *
      * @return the name the {@link javax.transaction.UserTransaction} should
-     *         be bound under in the {@link bitronix.tm.jndi.BitronixContext}.
+     * be bound under in the {@link bitronix.tm.jndi.BitronixContext}.
      */
     public String getJndiUserTransactionName() {
         return jndiUserTransactionName;
@@ -496,10 +531,11 @@ public class Configuration implements Service {
     /**
      * Set the name the {@link javax.transaction.UserTransaction} should be bound under in the
      * {@link bitronix.tm.jndi.BitronixContext}.
-     * @see #getJndiUserTransactionName()
+     *
      * @param jndiUserTransactionName the name the {@link javax.transaction.UserTransaction} should
-     *        be bound under in the {@link bitronix.tm.jndi.BitronixContext}.
+     * be bound under in the {@link bitronix.tm.jndi.BitronixContext}.
      * @return this.
+     * @see #getJndiUserTransactionName()
      */
     public Configuration setJndiUserTransactionName(String jndiUserTransactionName) {
         checkNotStarted();
@@ -510,8 +546,9 @@ public class Configuration implements Service {
     /**
      * Get the name the {@link javax.transaction.TransactionSynchronizationRegistry} should be bound under in the
      * {@link bitronix.tm.jndi.BitronixContext}.
+     *
      * @return the name the {@link javax.transaction.TransactionSynchronizationRegistry} should
-     *         be bound under in the {@link bitronix.tm.jndi.BitronixContext}.
+     * be bound under in the {@link bitronix.tm.jndi.BitronixContext}.
      */
     public String getJndiTransactionSynchronizationRegistryName() {
         return jndiTransactionSynchronizationRegistryName;
@@ -520,10 +557,11 @@ public class Configuration implements Service {
     /**
      * Set the name the {@link javax.transaction.TransactionSynchronizationRegistry} should be bound under in the
      * {@link bitronix.tm.jndi.BitronixContext}.
-     * @see #getJndiUserTransactionName()
+     *
      * @param jndiTransactionSynchronizationRegistryName the name the {@link javax.transaction.TransactionSynchronizationRegistry} should
-     *        be bound under in the {@link bitronix.tm.jndi.BitronixContext}.
+     * be bound under in the {@link bitronix.tm.jndi.BitronixContext}.
      * @return this.
+     * @see #getJndiUserTransactionName()
      */
     public Configuration setJndiTransactionSynchronizationRegistryName(String jndiTransactionSynchronizationRegistryName) {
         checkNotStarted();
@@ -533,6 +571,7 @@ public class Configuration implements Service {
 
     /**
      * Get the journal implementation. Can be <code>disk</code>, <code>null</code> or a class name.
+     *
      * @return the journal name.
      */
     public String getJournal() {
@@ -541,9 +580,10 @@ public class Configuration implements Service {
 
     /**
      * Set the journal name. Can be <code>disk</code>, <code>null</code> or a class name.
-     * @see #getJournal()
+     *
      * @param journal the journal name.
      * @return this.
+     * @see #getJournal()
      */
     public Configuration setJournal(String journal) {
         checkNotStarted();
@@ -553,6 +593,7 @@ public class Configuration implements Service {
 
     /**
      * Get the exception analyzer implementation. Can be <code>null</code> for the default one or a class name.
+     *
      * @return the exception analyzer name.
      */
     public String getExceptionAnalyzer() {
@@ -561,9 +602,10 @@ public class Configuration implements Service {
 
     /**
      * Set the exception analyzer implementation. Can be <code>null</code> for the default one or a class name.
-     * @see #getExceptionAnalyzer()
+     *
      * @param exceptionAnalyzer the exception analyzer name.
      * @return this.
+     * @see #getExceptionAnalyzer()
      */
     public Configuration setExceptionAnalyzer(String exceptionAnalyzer) {
         checkNotStarted();
@@ -574,8 +616,9 @@ public class Configuration implements Service {
     /**
      * Should the recovery process <b>not</b> recover XIDs generated with another JVM unique ID? Setting this property to true
      * is useful in clustered environments where multiple instances of BTM are running on different nodes.
-     * @see #getServerId() contains the value used as the JVM unique ID.
+     *
      * @return true if recovery should filter out recovered XIDs that do not contain this JVM's unique ID, false otherwise.
+     * @see #getServerId() contains the value used as the JVM unique ID.
      */
     public boolean isCurrentNodeOnlyRecovery() {
         return currentNodeOnlyRecovery;
@@ -583,9 +626,10 @@ public class Configuration implements Service {
 
     /**
      * Set to true if recovery should filter out recovered XIDs that do not contain this JVM's unique ID, false otherwise.
-     * @see #isCurrentNodeOnlyRecovery()
+     *
      * @param currentNodeOnlyRecovery true if recovery should filter out recovered XIDs that do not contain this JVM's unique ID, false otherwise.
      * @return this.
+     * @see #isCurrentNodeOnlyRecovery()
      */
     public Configuration setCurrentNodeOnlyRecovery(boolean currentNodeOnlyRecovery) {
         checkNotStarted();
@@ -596,6 +640,7 @@ public class Configuration implements Service {
     /**
      * Should the transaction manager allow enlistment of multiple LRC resources in a single transaction?
      * This is highly unsafe but could be useful for testing.
+     *
      * @return true if the transaction manager should allow enlistment of multiple LRC resources in a single transaction, false otherwise.
      */
     public boolean isAllowMultipleLrc() {
@@ -604,6 +649,7 @@ public class Configuration implements Service {
 
     /**
      * Set to true if the transaction manager should allow enlistment of multiple LRC resources in a single transaction.
+     *
      * @param allowMultipleLrc true if the transaction manager should allow enlistment of multiple LRC resources in a single transaction, false otherwise.
      * @return this
      */
@@ -617,6 +663,7 @@ public class Configuration implements Service {
      * {@link bitronix.tm.resource.ResourceLoader} configuration file name. {@link bitronix.tm.resource.ResourceLoader}
      * will be disabled if this value is null.
      * <p>Property name:<br/><b>bitronix.tm.resource.configuration -</b> <i>(defaults to null)</i></p>
+     *
      * @return the filename of the resources configuration file or null if not configured.
      */
     public String getResourceConfigurationFilename() {
@@ -625,10 +672,11 @@ public class Configuration implements Service {
 
     /**
      * Set the {@link bitronix.tm.resource.ResourceLoader} configuration file name.
-     * @see #getResourceConfigurationFilename()
+     *
      * @param resourceConfigurationFilename the filename of the resources configuration file or null you do not want to
-     *        use the {@link bitronix.tm.resource.ResourceLoader}.
+     * use the {@link bitronix.tm.resource.ResourceLoader}.
      * @return this.
+     * @see #getResourceConfigurationFilename()
      */
     public Configuration setResourceConfigurationFilename(String resourceConfigurationFilename) {
         checkNotStarted();
@@ -639,6 +687,7 @@ public class Configuration implements Service {
     /**
      * Build the server ID byte array that will be prepended in generated UIDs. Once built, the value is cached for
      * the duration of the JVM lifespan.
+     *
      * @return the server ID.
      */
     public byte[] buildServerIdArray() {
@@ -663,8 +712,9 @@ public class Configuration implements Service {
             }
 
             String serverIdArrayAsString = new String(serverIdArray);
-            if (serverId == null)
+            if (serverId == null) {
                 serverId = serverIdArrayAsString;
+            }
 
             log.info("JVM unique ID: <" + serverIdArrayAsString + ">");
         }
@@ -675,6 +725,7 @@ public class Configuration implements Service {
         serverIdArray = null;
     }
 
+    @Override
     public String toString() {
         StringBuilder sb = new StringBuilder(512);
         sb.append("a Configuration with [");
@@ -691,20 +742,22 @@ public class Configuration implements Service {
     }
 
     /*
-    * Internal implementation
-    */
+     * Internal implementation
+     */
 
     private void checkNotStarted() {
-        if (TransactionManagerServices.isTransactionManagerRunning())
+        if (TransactionManagerServices.isTransactionManagerRunning()) {
             throw new IllegalStateException("cannot change the configuration while the transaction manager is running");
+        }
     }
 
     static String getString(Properties properties, String key, String defaultValue) {
         String value = System.getProperty(key);
         if (value == null) {
             value = properties.getProperty(key);
-            if (value == null)
+            if (value == null) {
                 return defaultValue;
+            }
         }
         return evaluate(properties, value);
     }
@@ -721,17 +774,19 @@ public class Configuration implements Service {
         String result = value;
 
         int startIndex = value.indexOf('$');
-        if (startIndex > -1 && value.length() > startIndex +1 && value.charAt(startIndex +1) == '{') {
+        if (startIndex > -1 && value.length() > startIndex + 1 && value.charAt(startIndex + 1) == '{') {
             int endIndex = value.indexOf('}');
-            if (startIndex +2 == endIndex)
+            if (startIndex + 2 == endIndex) {
                 throw new IllegalArgumentException("property ref cannot refer to an empty name: ${}");
-            if (endIndex == -1)
-                throw new IllegalArgumentException("unclosed property ref: ${" + value.substring(startIndex +2));
+            }
+            if (endIndex == -1) {
+                throw new IllegalArgumentException("unclosed property ref: ${" + value.substring(startIndex + 2));
+            }
 
-            String subPropertyKey = value.substring(startIndex +2, endIndex);
+            String subPropertyKey = value.substring(startIndex + 2, endIndex);
             String subPropertyValue = getString(properties, subPropertyKey, null);
 
-            result = result.substring(0, startIndex) + subPropertyValue + result.substring(endIndex +1);
+            result = result.substring(0, startIndex) + subPropertyValue + result.substring(endIndex + 1);
             return evaluate(properties, result);
         }
 

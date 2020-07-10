@@ -18,12 +18,15 @@
  * 51 Franklin Street, Fifth Floor
  * Boston, MA 02110-1301 USA
  */
+
 package bitronix.tm.utils;
 
 import java.util.Arrays;
 
 /**
  * <p>A constant UID byte array container optimized for use with hashed collections.</p>
+ *
+ * 定义用作 hash 存储结构的 ID
  *
  * @author lorban
  */
@@ -46,8 +49,9 @@ public final class Uid {
 
     public byte[] extractServerId() {
         int serverIdLength = array.length - 4 - 8; // - sequence - timestamp
-        if (serverIdLength < 1)
+        if (serverIdLength < 1) {
             return null;
+        }
 
         byte[] result = new byte[serverIdLength];
         System.arraycopy(array, 0, result, 0, serverIdLength);
@@ -62,30 +66,34 @@ public final class Uid {
         return Encoder.bytesToInt(array, array.length - 4); // - sequence
     }
 
-
+    @Override
     public boolean equals(Object obj) {
         if (obj instanceof Uid) {
             Uid otherUid = (Uid) obj;
 
             // optimizes performance a bit
-            if (hashCodeValue != otherUid.hashCodeValue)
+            if (hashCodeValue != otherUid.hashCodeValue) {
                 return false;
+            }
 
             return Arrays.equals(array, otherUid.array);
         }
         return false;
     }
 
+    @Override
     public int hashCode() {
         return hashCodeValue;
     }
 
+    @Override
     public String toString() {
         return toStringValue;
     }
 
     /**
      * Compute a UID byte array hashcode value.
+     *
      * @param uid the byte array used for hashcode computation.
      * @return a constant hash value for the specified uid.
      */
@@ -108,6 +116,7 @@ public final class Uid {
 
     /**
      * Decode a UID byte array into a (somewhat) human-readable hex string.
+     *
      * @param uid the uid to decode.
      * @return the resulting printable string.
      */

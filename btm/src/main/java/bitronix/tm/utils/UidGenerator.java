@@ -18,6 +18,7 @@
  * 51 Franklin Street, Fifth Floor
  * Boston, MA 02110-1301 USA
  */
+
 package bitronix.tm.utils;
 
 import bitronix.tm.BitronixXid;
@@ -41,6 +42,7 @@ public class UidGenerator {
 
     /**
      * Generate a UID, globally unique. This method relies on the configured serverId for network uniqueness.
+     *
      * @return the generated UID.
      */
     public static Uid generateUid() {
@@ -60,6 +62,7 @@ public class UidGenerator {
 
     /**
      * Generate a XID with the specified globalTransactionId.
+     *
      * @param gtrid the GTRID to use to generate the Xid.
      * @return the generated Xid.
      */

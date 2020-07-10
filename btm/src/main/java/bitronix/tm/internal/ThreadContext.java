@@ -18,6 +18,7 @@
  * 51 Franklin Street, Fifth Floor
  * Boston, MA 02110-1301 USA
  */
+
 package bitronix.tm.internal;
 
 import bitronix.tm.BitronixTransaction;
@@ -30,8 +31,11 @@ import java.util.HashMap;
 import java.util.Map;
 
 /**
- * Transactional context of a thread. It contains both the active transaction (if any) and all default parameters
+ * Transactional context of a thread.
+ * It contains both the active transaction (if any) and all default parameters
  * that a transaction running on a thread must inherit.
+ *
+ * 当前线程对应的上下文对象，主要记录了与当前线程关联的 BitronixTransaction
  *
  * @author lorban
  */
@@ -45,25 +49,32 @@ public class ThreadContext {
 
     /**
      * Return the transaction linked with this thread context.
+     *
      * @return the transaction linked to this thread context or null if there is none.
      */
     public BitronixTransaction getTransaction() {
+        // 返回与当前线程绑定的 BitronixTransaction
         return transaction;
     }
 
     /**
      * Link a transaction with this thead context.
+     *
      * @param transaction the transaction to link.
      */
     public void setTransaction(BitronixTransaction transaction) {
-        if (transaction == null)
+        if (transaction == null) {
             throw new IllegalArgumentException("transaction parameter cannot be null");
-        if (log.isDebugEnabled()) log.debug("assigning <" + transaction + "> to <" + this + ">");
+        }
+        if (log.isDebugEnabled()) {
+            log.debug("assigning <" + transaction + "> to <" + this + ">");
+        }
         this.transaction = transaction;
     }
 
     /**
      * Return this context's default timeout.
+     *
      * @return this context's default timeout.
      */
     public int getTimeout() {
@@ -73,6 +84,7 @@ public class ThreadContext {
     /**
      * Set this context's default timeout. All transactions started by the thread linked to this context will get
      * this value as their default timeout.
+     *
      * @param timeout the new default timeout value in seconds.
      */
     public void setTimeout(int timeout) {
@@ -80,8 +92,7 @@ public class ThreadContext {
             int defaultValue = TransactionManagerServices.getConfiguration().getDefaultTransactionTimeout();
             if (log.isDebugEnabled()) log.debug("resetting default timeout of thread context to default value of " + defaultValue + "s");
             this.timeout = defaultValue;
-        }
-        else {    
+        } else {
             if (log.isDebugEnabled()) log.debug("changing default timeout of thread context to " + timeout + "s");
             this.timeout = timeout;
         }
@@ -89,6 +100,7 @@ public class ThreadContext {
 
     /**
      * Get this context's resources, in the JTA 1.1 TransactionSynchronizationRegistry sense.
+     *
      * @return this context's resources.
      */
     public Map<Object, Object> getResources() {
@@ -97,8 +109,10 @@ public class ThreadContext {
 
     /**
      * Return a human-readable representation.
+     *
      * @return a human-readable representation.
      */
+    @Override
     public String toString() {
         return "a ThreadContext with transaction " + transaction + ", default timeout " + timeout + "s";
     }

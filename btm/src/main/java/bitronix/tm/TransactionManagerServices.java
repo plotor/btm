@@ -18,6 +18,7 @@
  * 51 Franklin Street, Fifth Floor
  * Boston, MA 02110-1301 USA
  */
+
 package bitronix.tm;
 
 import bitronix.tm.journal.DiskJournal;
@@ -66,6 +67,7 @@ public class TransactionManagerServices {
 
     /**
      * Create an initialized transaction manager.
+     *
      * @return the transaction manager.
      */
     public static BitronixTransactionManager getTransactionManager() {
@@ -82,6 +84,7 @@ public class TransactionManagerServices {
 
     /**
      * Create the JTA 1.1 TransactionSynchronizationRegistry.
+     *
      * @return the TransactionSynchronizationRegistry.
      */
     public static BitronixTransactionSynchronizationRegistry getTransactionSynchronizationRegistry() {
@@ -97,6 +100,7 @@ public class TransactionManagerServices {
 
     /**
      * Create the configuration of all the components of the transaction manager.
+     *
      * @return the global configuration.
      */
     public static Configuration getConfiguration() {
@@ -112,6 +116,7 @@ public class TransactionManagerServices {
 
     /**
      * Create the transactions journal.
+     *
      * @return the transactions journal.
      */
     public static Journal getJournal() {
@@ -141,6 +146,7 @@ public class TransactionManagerServices {
 
     /**
      * Create the task scheduler.
+     *
      * @return the task scheduler.
      */
     public static TaskScheduler getTaskScheduler() {
@@ -158,6 +164,7 @@ public class TransactionManagerServices {
 
     /**
      * Create the resource loader.
+     *
      * @return the resource loader.
      */
     public static ResourceLoader getResourceLoader() {
@@ -167,12 +174,13 @@ public class TransactionManagerServices {
             if (!resourceLoaderRef.compareAndSet(null, resourceLoader)) {
                 resourceLoader = resourceLoaderRef.get();
             }
-        }        
+        }
         return resourceLoader;
     }
 
     /**
      * Create the transaction recoverer.
+     *
      * @return the transaction recoverer.
      */
     public static Recoverer getRecoverer() {
@@ -188,6 +196,7 @@ public class TransactionManagerServices {
 
     /**
      * Create the 2PC executor.
+     *
      * @return the 2PC executor.
      */
     public static Executor getExecutor() {
@@ -210,9 +219,10 @@ public class TransactionManagerServices {
 
     /**
      * Create the exception analyzer.
+     *
      * @return the exception analyzer.
      */
-   public static ExceptionAnalyzer getExceptionAnalyzer() {
+    public static ExceptionAnalyzer getExceptionAnalyzer() {
         ExceptionAnalyzer analyzer = exceptionAnalyzerRef.get();
         if (analyzer == null) {
             String exceptionAnalyzerName = getConfiguration().getExceptionAnalyzer();
@@ -234,6 +244,7 @@ public class TransactionManagerServices {
 
     /**
      * Check if the transaction manager has started.
+     *
      * @return true if the transaction manager has started.
      */
     public static boolean isTransactionManagerRunning() {
@@ -242,6 +253,7 @@ public class TransactionManagerServices {
 
     /**
      * Check if the task scheduler has started.
+     *
      * @return true if the task scheduler has started.
      */
     public static boolean isTaskSchedulerRunning() {
